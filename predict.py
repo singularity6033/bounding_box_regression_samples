@@ -47,7 +47,7 @@ for imagePath in imagePaths:
     # predict the bounding box of the object along with the class
     # label
     (boxPreds, labelPreds) = model.predict(image)
-    (startY, endY, startX, endX) = boxPreds[0]
+    (startX, startY, endX, endY) = boxPreds[0]
     # determine the class label with the largest predicted
     # probability
     i = np.argmax(labelPreds, axis=1)

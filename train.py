@@ -34,7 +34,7 @@ for filename in Annotation_Path_List:
     for matPath in paths.list_files(os.path.join(Annotation_Path, filename), validExts=".mat"):
         # load the contents of the current mat annotations file
         # print(matPath)
-        startX, startY, endX, endY = loadmat(matPath)['box_coord'].flatten().tolist()
+        startY, endY, startX, endX = loadmat(matPath)['box_coord'].flatten().tolist()
         image_detail = 'image' + matPath[-9:-4] + '.jpg'
         # derive the path to the input image, load the image (in
         # OpenCV format), and grab its dimensions
