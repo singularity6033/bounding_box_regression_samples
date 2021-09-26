@@ -1,5 +1,5 @@
 # for given recall and precision calculate the Average Precision (AP)
-def ap_compute(rec, prec):
+def compute_ap(rec, prec):
     rec.insert(0, 0.0)
     rec.append(1.0)
     m_rec = rec[:]
@@ -27,7 +27,7 @@ def ap_compute(rec, prec):
     return ap
 
 
-recall = [0.2, 0.4, 0.4, 0.4, 0.4, 0.6, 0.8, 0.8, 0.8, 1]
-precision = [1, 1, 0.67, 0.5, 0.4, 0.5, 0.57, 0.5, 0.44, 0.5]
-ap = ap_compute(recall, precision)
-print(ap)
+# recall = [0.2, 0.4, 0.4, 0.4, 0.4, 0.6, 0.8, 0.8, 0.8, 1]
+# precision = [1, 1, 0.67, 0.5, 0.4, 0.5, 0.57, 0.5, 0.44, 0.5]
+# ap = ap_compute(recall, precision)
+# print(ap)

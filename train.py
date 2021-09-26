@@ -1,6 +1,9 @@
 # import the necessary packages
+from tensorflow.keras.models import load_model
 from scipy.io import loadmat
 from pyimagesearch import config
+from pyimagesearch.iou import compute_iou
+from pyimagesearch.ap import compute_ap
 from tensorflow.keras.applications import VGG16
 from tensorflow.keras.layers import Flatten
 from tensorflow.keras.layers import Dropout
@@ -13,6 +16,7 @@ from tensorflow.keras.preprocessing.image import load_img
 from tensorflow.keras.utils import to_categorical
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
+from math import *
 from imutils import paths
 import matplotlib.pyplot as plt
 import numpy as np
@@ -67,19 +71,28 @@ imagePaths = np.array(imagePaths)
 # perform one-hot encoding on the labels
 lb = LabelBinarizer()
 labels = lb.fit_transform(labels)
+print(lb.classes_[0])
 # only there are only two labels in the dataset, then we need to use
 # Keras/TensorFlow's utility function as well
 if len(lb.classes_) == 2:
     labels = to_categorical(labels)
 # partition the data into training and testing splits using 80% of
 # the data for training and the remaining 20% for testing
-split = train_test_split(data, labels, bboxes, imagePaths,
-                         test_size=0.20, random_state=42)
+split1 = train_test_split(data, labels, bboxes, imagePaths,
+                          test_size=0.20, random_state=42)
+# then we divide some for validation (20% of training set)
+split2 = train_test_split(split1[0], split1[2], split1[4], split1[6],
+                          test_size=0.20, random_state=42)
 # unpack the data split
-(trainImages, testImages) = split[:2]
-(trainLabels, testLabels) = split[2:4]
-(trainBBoxes, testBBoxes) = split[4:6]
-(trainPaths, testPaths) = split[6:]
+testImages = split1[1]
+testLabels = split1[3]
+testBBoxes = split1[5]
+testPaths = split1[7]
+(trainImages, validationImages) = split2[:2]
+(trainLabels, validationLabels) = split2[2:4]
+(trainBBoxes, validationBBoxes) = split2[4:6]
+(trainPaths, validationPaths) = split2[6:]
+
 # write the testing image paths to disk so that we can use then
 # when evaluating/testing our object detector
 print("[INFO] saving testing image paths...")
@@ -140,16 +153,16 @@ trainTargets = {
 }
 # construct a second dictionary, this one for our target testing
 # outputs
-testTargets = {
-    "class_label": testLabels,
-    "bounding_box": testBBoxes
+validationTargets = {
+    "class_label": validationLabels,
+    "bounding_box": validationBBoxes
 }
 # train the network for bounding box regression and class label
 # prediction
 print("[INFO] training model...")
 H = model.fit(
     trainImages, trainTargets,
-    validation_data=(testImages, testTargets),
+    validation_data=(validationImages, validationTargets),
     batch_size=config.BATCH_SIZE,
     epochs=config.NUM_EPOCHS,
     verbose=1)
@@ -185,13 +198,57 @@ plt.close()
 plt.style.use("ggplot")
 plt.figure()
 plt.plot(N, H.history["class_label_accuracy"],
-         label="class_label_train_acc")
+         label="class_label_train_accuracy")
 plt.plot(N, H.history["val_class_label_accuracy"],
-         label="val_class_label_acc")
+         label="val_class_label_accuracy")
 plt.title("Class Label Accuracy")
 plt.xlabel("Epoch #")
 plt.ylabel("Accuracy")
 plt.legend(loc="lower left")
 # save the accuracies plot
 plotPath = os.path.sep.join([config.PLOTS_PATH, "accs.png"])
+plt.savefig(plotPath)
+
+# calculate AP and mAP
+MIN_IOU = [0.5, 0.55, 0.6, 0.65, 0.75, 0.8, 0.85, 0.9, 0.95]
+AP = [[] for i in range(np.size(testLabels, axis=1))]
+CORRECT = [[] for i in range(np.size(testLabels, axis=1))]
+Precision = [[] for i in range(np.size(testLabels, axis=1))]
+Recall = [[] for i in range(np.size(testLabels, axis=1))]
+TP_FN = np.zeros(np.size(testLabels, axis=1))
+for min_iou in MIN_IOU:
+    for idx, img in enumerate(testImages):
+        img = np.expand_dims(img, axis=0)
+        # predict the bounding box of the object along with the class
+        i = np.argmax(testLabels[idx])
+        TP_FN[i] += 1
+        (boxPreds, labelPreds) = model.predict(img)
+        iou = compute_iou(boxPreds[0], testBBoxes[0])
+        if iou > min_iou:
+            CORRECT[i].append(1)
+        else:
+            CORRECT[i].append(0)
+    for j in range(len(CORRECT)):
+        for k in range(len(CORRECT[j])):
+            Precision[j].append(sum(CORRECT[j][0:k]) / (len(CORRECT[j][0:k]) + 1))
+            Recall[j].append(sum(CORRECT[j][0:k]) / TP_FN[j])
+        AP[j].append(compute_ap(Precision[j], Recall[j]))
+mAP = np.mean(AP, axis=1)
+
+plt.style.use("ggplot")
+plt.title("Class Average Precision")
+plt.plot(MIN_IOU, AP)
+plt.xlabel("IOU")
+plt.ylabel("AP")
+plt.legend([lb.classes_[0], lb.classes_[1], lb.classes_[2]], loc="best")
+plotPath = os.path.sep.join([config.PLOTS_PATH, "AP.png"])
+plt.savefig(plotPath)
+
+plt.close()
+plt.style.use("ggplot")
+plt.title("Mean Average Precision")
+plt.plot(MIN_IOU, mAP)
+plt.xlabel("IOU")
+plt.ylabel("mAP")
+plotPath = os.path.sep.join([config.PLOTS_PATH, "mAP.png"])
 plt.savefig(plotPath)
