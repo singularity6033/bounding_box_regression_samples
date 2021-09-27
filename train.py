@@ -208,18 +208,20 @@ plt.legend(loc="lower left")
 # save the accuracies plot
 plotPath = os.path.sep.join([config.PLOTS_PATH, "accs.png"])
 plt.savefig(plotPath)
+plt.close()
 
-# calculate AP and mAP
+# calculate AP and mAP.
+NUM_CLASS = np.size(testLabels, axis=1)
 MIN_IOU = [0.5, 0.55, 0.6, 0.65, 0.75, 0.8, 0.85, 0.9, 0.95]
-AP = [[] for i in range(np.size(testLabels, axis=1))]
-CORRECT = [[] for i in range(np.size(testLabels, axis=1))]
-Precision = [[] for i in range(np.size(testLabels, axis=1))]
-Recall = [[] for i in range(np.size(testLabels, axis=1))]
-TP_FN = np.zeros(np.size(testLabels, axis=1))
+AP = [[] for i in range(NUM_CLASS)]
+CORRECT = [[] for i in range(NUM_CLASS)]
+Precision = [[] for i in range(NUM_CLASS)]
+Recall = [[] for i in range(NUM_CLASS)]
+TP_FN = np.zeros(NUM_CLASS)
 for min_iou in MIN_IOU:
     for idx, img in enumerate(testImages):
         img = np.expand_dims(img, axis=0)
-        # predict the bounding box of the object along with the class
+        # predict the bounding box of the object along with the class.
         i = np.argmax(testLabels[idx])
         TP_FN[i] += 1
         (boxPreds, labelPreds) = model.predict(img)
@@ -233,18 +235,21 @@ for min_iou in MIN_IOU:
             Precision[j].append(sum(CORRECT[j][0:k]) / (len(CORRECT[j][0:k]) + 1))
             Recall[j].append(sum(CORRECT[j][0:k]) / TP_FN[j])
         AP[j].append(compute_ap(Precision[j], Recall[j]))
-mAP = np.mean(AP, axis=1)
+mAP = np.mean(AP, axis=0)
 
+plt.figure()
 plt.style.use("ggplot")
 plt.title("Class Average Precision")
-plt.plot(MIN_IOU, AP)
+for i in range(NUM_CLASS):
+    plt.plot(MIN_IOU, AP[i])
 plt.xlabel("IOU")
 plt.ylabel("AP")
 plt.legend([lb.classes_[0], lb.classes_[1], lb.classes_[2]], loc="best")
 plotPath = os.path.sep.join([config.PLOTS_PATH, "AP.png"])
 plt.savefig(plotPath)
-
 plt.close()
+
+plt.figure()
 plt.style.use("ggplot")
 plt.title("Mean Average Precision")
 plt.plot(MIN_IOU, mAP)
@@ -252,3 +257,4 @@ plt.xlabel("IOU")
 plt.ylabel("mAP")
 plotPath = os.path.sep.join([config.PLOTS_PATH, "mAP.png"])
 plt.savefig(plotPath)
+plt.close()

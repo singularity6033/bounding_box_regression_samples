@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="4ce793f5-0625-4149-a94d-e06ea9eb5dd7" name="s121md215_02@dl2080-15.dynip.ntu.edu.sg:22 password (project level)">
+        <fileTransfer accessType="SFTP" host="dl2080-15.dynip.ntu.edu.sg" port="22" sshConfigId="c1f816fb-badd-4649-9be6-6074892f473e" sshConfig="s121md215_02@dl2080-15.dynip.ntu.edu.sg:22 password" />
+      </webServer>
+    </option>
+  </component>
+</project>

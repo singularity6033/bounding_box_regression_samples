@@ -2,7 +2,10 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="Python 3.8 (tensorflow-gpu)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Remote Python 3.7.10 (sftp://s121md215_02@dl2080-15.dynip.ntu.edu.sg:22/media/user/volume2/students/s121md215_02/anaconda3/envs/tensorflow-gpu/bin/python3.7) (2)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+  <component name="PyDocumentationSettings">
+    <option name="renderExternalDocumentation" value="true" />
   </component>
 </module>

@@ -57,7 +57,7 @@ for imagePath in imagePaths:
     image = cv2.imread(imagePath)
     image = imutils.resize(image, width=600)
     (h, w) = image.shape[:2]
-    # scale the predicted bounding box coordinates based on the image
+    # scale the predicted bounding box coordinates based on the image.
     # dimensions
     startX = int(startX * w)
     startY = int(startY * h)
